@@ -1,0 +1,166 @@
+<?php
+/**
+ * @file
+ * Module file for Facebook Feed
+ */
+
+/**
+ * Implements hook_block_info
+ */
+function fb_feed_block_info() {
+  // This example comes from node.module.
+  $blocks['fb_feed_html5'] = array(
+    'info' => t('Facebook Feed (HTML5)'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure
+ */
+function fb_feed_block_configure($delta = '') {
+  // This example comes from node.module.
+  $form = array();
+  if ($delta == 'fb_feed_html5') {
+    $form['fb_feed_fieldset'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Facebook Like Box Options',
+      );
+    $form['fb_feed_fieldset']['fb_feed_page_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Facebook Page URL'),
+      '#default_value' => variable_get('fb_feed_page_url', ''),
+      '#attributes' => array(
+        'placeholder' => 'https://www.facebook.com/FacebookDevelopers',
+        ),
+      '#required' => TRUE,
+    );
+    $form['fb_feed_fieldset']['fb_feed_height'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Display Height (in pixels)',
+      '#default_value' => variable_get('fb_feed_height'),
+      );
+    $form['fb_feed_fieldset']['fb_feed_color_scheme'] = array(
+      '#type' => 'select',
+      '#title' => 'Color Scheme',
+      '#default_value' => variable_get('fb_feed_color_scheme', 'light'),
+      '#options' => array('light' => 'Light', 'dark' => 'Dark'),
+      );
+    $form['fb_feed_fieldset']['fb_feed_header'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Show header',
+      '#default_value' => variable_get('fb_feed_header', 0)
+      );
+    $form['fb_feed_fieldset']['fb_feed_stream'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Show strean',
+      '#default_value' => variable_get('fb_feed_stream', 1)
+      );
+    $form['fb_feed_fieldset']['fb_feed_faces'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Show faces',
+      '#default_value' => variable_get('fb_feed_faces', 0)
+      );
+    $form['fb_feed_fieldset']['fb_feed_border'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Show border',
+      '#default_value' => variable_get('fb_feed_border', 1)
+      );
+  }
+  return $form;
+}
+
+/**
+ * Impements hook_block_save
+ */
+function fb_feed_block_save($delta = '', $edit = array()) {
+  // This example comes from node.module.
+  if ($delta == 'fb_feed_html5') {
+    ddl($edit);
+    foreach(fb_feed_form_fields() as $form_field) {
+      variable_set($form_field, $edit[$form_field]);
+    }
+  }
+}
+
+/**
+ * Implements hook_block_view
+ */
+function fb_feed_block_view($delta = '') {
+  // This example is adapted from node.module.
+  $block = array();
+
+  switch ($delta) {
+    case 'fb_feed_html5':
+      $block['subject'] = t('Facebook Feed');
+      $block['content'] = array(
+        '#markup' => fb_feed_render(),
+        '#attached' => fb_feed_attach(),
+        );
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Returns array of fields on edit form
+ * @return array
+ */
+function fb_feed_form_fields() {
+  return array(
+    'fb_feed_page_url',
+    'fb_feed_height',
+    'fb_feed_color_scheme',
+    'fb_feed_header',
+    'fb_feed_stream',
+    'fb_feed_faces',
+    'fb_feed_border',
+    );
+}
+
+/**
+ * Outputs LikeBox
+ */
+function fb_feed_render() {
+  $output = '
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=474010699349290";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, \'script\', \'facebook-jssdk\'));</script>' . PHP_EOL;
+  $output .= '<div id="fb-feed-container">  </div>';
+  return $output;
+}
+
+/**
+ * Attachs JavaScript so block can cache properly.
+ */
+function fb_feed_attach() {
+  $attach = array();
+  $path = drupal_get_path('module', 'fb_feed');
+  $attach['js'] = array(
+      $path . '/fb_feed.js' => array (
+       'type' => 'file',
+       'scope' => 'footer',
+      ),
+  );
+
+  $settings = array(
+    'fb_feed_page_url' => variable_get('fb_feed_page_url', 'https://www.facebook.com/FacebookDevelopers'),
+    'fb_feed_height' => 'data-height="'.variable_get('fb_feed_height', '400').'"',
+    'fb_feed_color_scheme' => variable_get('fb_feed_color_scheme', 'light'),
+    'fb_feed_header' => variable_get('fb_feed_header', 'false'),
+    'fb_feed_stream' => variable_get('fb_feed_stream', 'true'),
+    'fb_feed_faces' => variable_get('fb_feed_faces', 'false'),
+    'fb_feed_border' => variable_get('fb_feed_border', 'true'),
+    );
+  $attach['js'][] = array(
+    'data' => array('fb_feed' => $settings),
+    'type' => 'setting',
+    );
+  return $attach;
+}
+?>

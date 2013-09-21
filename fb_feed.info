@@ -1,0 +1,3 @@
+name = Facebook Feed
+description = Creates a block that makes for easy placement of a Facebook Like Box news feed.
+core = 7.x
