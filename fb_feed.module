@@ -76,7 +76,6 @@ function fb_feed_block_configure($delta = '') {
 function fb_feed_block_save($delta = '', $edit = array()) {
   // This example comes from node.module.
   if ($delta == 'fb_feed_html5') {
-    ddl($edit);
     foreach(fb_feed_form_fields() as $form_field) {
       variable_set($form_field, $edit[$form_field]);
     }
